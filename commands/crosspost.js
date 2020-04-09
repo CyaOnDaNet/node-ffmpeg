@@ -5,6 +5,11 @@ module.exports = {
 	usage: '#Channel(s) [Content or image or `id:message-id`]',
 	adminCommand: false,
 	async execute(message, args, prefix, guildSettings, client, Discord, Music, fetch) {
+		/*
+		To Do:
+		Check if user exists in send channels
+		Extract URL's
+		*/
     var messageAfterCommand = message.content.slice(message.content.indexOf(" ") + 1);
     if (message.content.indexOf(" ") === -1) {
       return message.channel.send("You didn't state what to crosspost!");
@@ -98,11 +103,7 @@ module.exports = {
                           .setTimestamp(messageToCP.createdAt)
                           .setColor(0x00AE86);
                       }
-                      /*
-                      messageToCP.attachments.tap(attachments => {
-                        embed.setImage(attachments.url);
-                      });
-                      */
+
                       var attachmentFiles = [];
                       messageToCP.attachments.tap(attachments => {
                         attachmentFiles.push(attachments.url);
@@ -145,11 +146,6 @@ module.exports = {
                             .setColor(0x00AE86);
                         }
 
-                      /*
-                      messageToCP.attachments.tap(attachments => {
-                        embed.setImage(attachments.url);
-                      });
-                      */
                       var attachmentFiles = [];
                       messageToCP.attachments.tap(attachments => {
                         attachmentFiles.push(attachments.url);
@@ -190,21 +186,15 @@ module.exports = {
                   .setTimestamp(new Date())
                   .setColor(0x00AE86);
 
-                /*
-                message.attachments.tap(attachments => {
-                  embed.setImage(attachments.url);
-                });
-                */
-
                 var attachmentFiles = [];
-                message.attachments.tap(attachments => {
+                await message.attachments.tap(attachments => {
                   attachmentFiles.push(attachments.url);
                 });
                 if (attachmentFiles.length === 0) {
                   embed.addField('\u200b', "[Click Here for Message Origin](" + message.url + ")");
-                  return client.channels.get(channelCheck).send({embed: embed});
+                  client.channels.get(channelCheck).send({embed: embed});
                 }
-                if (attachmentFiles.length === 1) {
+                else if (attachmentFiles.length === 1) {
                   embed.setImage(attachmentFiles[0]);
                   embed.addField('\u200b', "[Click Here for Message Origin](" + message.url + ")");
                   client.channels.get(channelCheck).send({embed: embed});
@@ -224,12 +214,6 @@ module.exports = {
                 .setFooter("Posted")
                 .setTimestamp(new Date())
                 .setColor(0x00AE86);
-
-              /*
-              message.attachments.tap(attachments => {
-                embed.setImage(attachments.url);
-              });
-              */
 
               var attachmentFiles = [];
               message.attachments.tap(attachments => {
