@@ -80,20 +80,77 @@ module.exports = {
           channelCheck = channelCheck.slice(2, channelCheck.length - 1);
           if (client.channels.get(channelCheck).guild.member(message.author).permissionsIn(channelCheck).has('SEND_MESSAGES')) {
             var embed;
+						var urlList = "";
             if (extractedMessage != "") {
               // Has Content
               if (extractedMessage.trim().toLowerCase().startsWith("id:")) {
                 var messageID = extractedMessage.trim().slice(extractedMessage.toLowerCase().indexOf("id:") + 3, extractedMessage.trim().length);
                 //var send = true;
                 await message.channel.fetchMessage(messageID)
-                  .then(messageToCP => {
+                  .then(async messageToCP => {
+										//Find URL
+										var extractedMessage = messageToCP.content;
+										var urlList = "";
+										if (extractedMessage.trim().toLowerCase().includes("http://") || extractedMessage.trim().toLowerCase().includes("https://")) {
+											extractedMessage = extractedMessage.trim();
+											var extractedMessageChecker = extractedMessage;
+											var extractedUrlListCheck = "";
+											var urlCount = 1;
+			                while (extractedMessage.trim().toLowerCase().includes("http://") || extractedMessage.trim().toLowerCase().includes("https://")) {
+												var workingMessage = extractedMessage.trim().toLowerCase();
+												var http = "http://";
+												if (workingMessage.includes("https://")) {
+													http = "https://";
+												}
+												var startIndex = workingMessage.indexOf(http);
+												var endIndex = workingMessage.length;
+												var extractedURL = workingMessage.trim().substring(startIndex, endIndex);
+
+												if (extractedURL.includes(" ")) {
+													endIndex = extractedURL.indexOf(" ") + startIndex;
+												}
+												extractedURL = extractedMessage.trim().substring(startIndex, endIndex);
+
+												urlList = urlList + extractedURL + "\n";
+												extractedUrlListCheck = extractedUrlListCheck + `**URL ${urlCount}:** ` + extractedURL + "\n";
+
+												extractedMessage = extractedMessage.replace(extractedURL,'');
+												extractedMessageChecker = extractedMessageChecker.replace(extractedURL,`[URL ${urlCount}](${extractedURL})`);
+
+												urlCount++;
+											}
+											if (extractedMessage.trim() != "") {
+												extractedMessage = extractedMessageChecker.trim();
+												urlList = extractedUrlListCheck;
+											}
+										}
+										messageToCP.content = extractedMessage;
+
                     if (messageToCP.author.id === message.author.id) {
-                      embed = new Discord.RichEmbed()
-                        .setThumbnail(messageToCP.author.avatarURL)
-                        .setDescription(messageToCP.author + " Said:\n\n>>> " + messageToCP.content)
-                        .setFooter("Posted")
-                        .setTimestamp(messageToCP.createdAt)
-                        .setColor(0x00AE86);
+											if ( (!messageToCP.content || messageToCP.content.trim() == "") && urlList != "") {
+												embed = new Discord.RichEmbed()
+	                        .setThumbnail(messageToCP.author.avatarURL)
+	                        .setDescription(messageToCP.author + " posted the links below!")
+	                        .setFooter("Posted")
+	                        .setTimestamp(messageToCP.createdAt)
+	                        .setColor(0x00AE86);
+											}
+											else if (urlList != "") {
+												embed = new Discord.RichEmbed()
+	                        .setThumbnail(messageToCP.author.avatarURL)
+	                        .setDescription(messageToCP.author + " Posted Links and Said:\n\n>>> " + messageToCP.content)
+	                        .setFooter("Posted")
+	                        .setTimestamp(messageToCP.createdAt)
+	                        .setColor(0x00AE86);
+											}
+											else {
+												embed = new Discord.RichEmbed()
+	                        .setThumbnail(messageToCP.author.avatarURL)
+	                        .setDescription(messageToCP.author + " Said:\n\n>>> " + messageToCP.content)
+	                        .setFooter("Posted")
+	                        .setTimestamp(messageToCP.createdAt)
+	                        .setColor(0x00AE86);
+											}
 
                       if (!messageToCP.content) {
                         embed = new Discord.RichEmbed()
@@ -110,41 +167,67 @@ module.exports = {
                       });
                       if (attachmentFiles.length === 0) {
                         embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")");
-                        client.channels.get(channelCheck).send({embed: embed});
+                        await client.channels.get(channelCheck).send({embed: embed});
                       }
                       else if (attachmentFiles.length === 1) {
                         embed.setImage(attachmentFiles[0]);
                         embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")");
-                        client.channels.get(channelCheck).send({embed: embed});
+                        await client.channels.get(channelCheck).send({embed: embed});
                       }
                       else {
                         if (!messageToCP.content) {
-                          embed.setDescription(messageToCP.author + " Posted the Attachments Below");
+													if (urlList != "") {
+														embed.setDescription(messageToCP.author + " Posted the Links and the Attachments Below");
+													}
+													else {
+														embed.setDescription(messageToCP.author + " Posted the Attachments Below");
+													}
                           embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")");
                         }
                         else {
                           embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")\n" + message.author + "'s Attachments Listed Below");
                         }
-                        client.channels.get(channelCheck).send({embed: embed});
-                        client.channels.get(channelCheck).send({files: attachmentFiles});
+                        await client.channels.get(channelCheck).send({embed: embed});
+                        await client.channels.get(channelCheck).send({files: attachmentFiles});
                       }
 
-                    } else {
-                      embed = new Discord.RichEmbed()
-                        .setThumbnail(messageToCP.author.avatarURL)
-                        .setDescription(messageToCP.author + " Said:\n\n>>> " + messageToCP.content)
-                        .setFooter("Posted")
-                        .setTimestamp(messageToCP.createdAt)
-                        .setColor(0x00AE86);
+											if (urlList != "") {
+												await client.channels.get(channelCheck).send(urlList);
+											}
 
-                        if (!messageToCP.content) {
-                          embed = new Discord.RichEmbed()
-                            .setThumbnail(messageToCP.author.avatarURL)
-                            .setDescription(messageToCP.author + " Posted an Attachment.")
-                            .setFooter("Posted")
-                            .setTimestamp(messageToCP.createdAt)
-                            .setColor(0x00AE86);
-                        }
+                    } else {
+											if (!messageToCP.content && urlList != "") {
+												embed = new Discord.RichEmbed()
+	                        .setThumbnail(messageToCP.author.avatarURL)
+	                        .setDescription(messageToCP.author + " posted the links below!")
+	                        .setFooter("Posted")
+	                        .setTimestamp(messageToCP.createdAt)
+	                        .setColor(0x00AE86);
+											}
+											else if (!messageToCP.content){
+												embed = new Discord.RichEmbed()
+                          .setThumbnail(messageToCP.author.avatarURL)
+                          .setDescription(messageToCP.author + " Posted an Attachment.")
+                          .setFooter("Posted")
+                          .setTimestamp(messageToCP.createdAt)
+                          .setColor(0x00AE86);
+											}
+											else if (urlList != "") {
+												embed = new Discord.RichEmbed()
+	                        .setThumbnail(messageToCP.author.avatarURL)
+	                        .setDescription(messageToCP.author + " Posted Links and Said:\n\n>>> " + messageToCP.content)
+	                        .setFooter("Posted")
+	                        .setTimestamp(messageToCP.createdAt)
+	                        .setColor(0x00AE86);
+											}
+											else {
+												embed = new Discord.RichEmbed()
+	                        .setThumbnail(messageToCP.author.avatarURL)
+	                        .setDescription(messageToCP.author + " Said:\n\n>>> " + messageToCP.content)
+	                        .setFooter("Posted")
+	                        .setTimestamp(messageToCP.createdAt)
+	                        .setColor(0x00AE86);
+											}
 
                       var attachmentFiles = [];
                       messageToCP.attachments.tap(attachments => {
@@ -152,24 +235,33 @@ module.exports = {
                       });
                       if (attachmentFiles.length === 0) {
                         embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")");
-                        client.channels.get(channelCheck).send({embed: embed});
+                        await client.channels.get(channelCheck).send({embed: embed});
                       }
                       else if (attachmentFiles.length === 1) {
                         embed.setImage(attachmentFiles[0]);
                         embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")\nCrossposted By: " + message.author);
-                        client.channels.get(channelCheck).send({embed: embed});
+                        await client.channels.get(channelCheck).send({embed: embed});
                       }
                       else {
                         if (!messageToCP.content) {
-                          embed.setDescription(messageToCP.author + " Posted the Attachments Below");
+													if (urlList != "") {
+														embed.setDescription(messageToCP.author + " Posted Links and the Attachments Below");
+													}
+													else {
+														embed.setDescription(messageToCP.author + " Posted the Attachments Below");
+													}
                           embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")\nCrossposted By: " + message.author);
                         }
                         else {
                           embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")\nCrossposted By: " + message.author + "\nAttachments Listed Below");
                         }
-                        client.channels.get(channelCheck).send({embed: embed});
-                        client.channels.get(channelCheck).send({files: attachmentFiles});
+                        await client.channels.get(channelCheck).send({embed: embed});
+                        await client.channels.get(channelCheck).send({files: attachmentFiles});
                       }
+
+											if (urlList != "") {
+												await client.channels.get(channelCheck).send(urlList);
+											}
                     }
                   })
                   .catch(error => {
@@ -178,13 +270,66 @@ module.exports = {
                     i = messageAfterCommand.length + 1;   // ensure we don't come back here if multiple channels were mentioned
                     return message.channel.send("That was not a valid message ID in this channel! Nothing crossposted.");
                   });
-              } else {
-                embed = new Discord.RichEmbed()
-                  .setThumbnail(message.author.avatarURL)
-                  .setDescription(message.author + " Said:\n\n>>> " + extractedMessage)
-                  .setFooter("Posted")
-                  .setTimestamp(new Date())
-                  .setColor(0x00AE86);
+              }
+							else {
+								//Find URL
+								if (extractedMessage.trim().toLowerCase().includes("http://") || extractedMessage.trim().toLowerCase().includes("https://")) {
+									extractedMessage = extractedMessage.trim();
+									var extractedMessageChecker = extractedMessage;
+									var extractedUrlListCheck = "";
+									var urlCount = 1;
+	                while (extractedMessage.trim().toLowerCase().includes("http://") || extractedMessage.trim().toLowerCase().includes("https://")) {
+										var workingMessage = extractedMessage.trim().toLowerCase();
+										var http = "http://";
+										if (workingMessage.includes("https://")) {
+											http = "https://";
+										}
+										var startIndex = workingMessage.indexOf(http);
+										var endIndex = workingMessage.length;
+										var extractedURL = workingMessage.trim().substring(startIndex, endIndex);
+
+										if (extractedURL.includes(" ")) {
+											endIndex = extractedURL.indexOf(" ") + startIndex;
+										}
+										extractedURL = extractedMessage.trim().substring(startIndex, endIndex);
+
+										urlList = urlList + extractedURL + "\n";
+										extractedUrlListCheck = extractedUrlListCheck + `**URL ${urlCount}:** ` + extractedURL + "\n";
+
+										extractedMessage = extractedMessage.replace(extractedURL,'');
+										extractedMessageChecker = extractedMessageChecker.replace(extractedURL,`[URL ${urlCount}](${extractedURL})`);
+
+										urlCount++;
+									}
+									if (extractedMessage.trim() != "") {
+										extractedMessage = extractedMessageChecker.trim();
+										urlList = extractedUrlListCheck;
+									}
+								}
+								if (extractedMessage.trim() == "" && urlList != "") {
+									embed = new Discord.RichEmbed()
+	                  .setThumbnail(message.author.avatarURL)
+	                  .setDescription(message.author + " posted the links below!")
+	                  .setFooter("Posted")
+	                  .setTimestamp(new Date())
+	                  .setColor(0x00AE86);
+								}
+								else if (urlList != "") {
+									embed = new Discord.RichEmbed()
+	                  .setThumbnail(message.author.avatarURL)
+	                  .setDescription(message.author + " Posted Links and Said:\n\n>>> " + extractedMessage)
+	                  .setFooter("Posted")
+	                  .setTimestamp(new Date())
+	                  .setColor(0x00AE86);
+								}
+								else {
+									embed = new Discord.RichEmbed()
+	                  .setThumbnail(message.author.avatarURL)
+	                  .setDescription(message.author + " Said:\n\n>>> " + extractedMessage)
+	                  .setFooter("Posted")
+	                  .setTimestamp(new Date())
+	                  .setColor(0x00AE86);
+								}
 
                 var attachmentFiles = [];
                 await message.attachments.tap(attachments => {
@@ -192,18 +337,21 @@ module.exports = {
                 });
                 if (attachmentFiles.length === 0) {
                   embed.addField('\u200b', "[Click Here for Message Origin](" + message.url + ")");
-                  client.channels.get(channelCheck).send({embed: embed});
+                  await client.channels.get(channelCheck).send({embed: embed});
                 }
                 else if (attachmentFiles.length === 1) {
                   embed.setImage(attachmentFiles[0]);
                   embed.addField('\u200b', "[Click Here for Message Origin](" + message.url + ")");
-                  client.channels.get(channelCheck).send({embed: embed});
+                  await client.channels.get(channelCheck).send({embed: embed});
                 }
                 else {
                   if (attachmentFiles.length > 1) embed.addField('\u200b', "[Click Here for Message Origin](" + message.url + ")\n" + message.author + "'s Attachments Listed Below");
-                  client.channels.get(channelCheck).send({embed: embed});
-                  client.channels.get(channelCheck).send({files: attachmentFiles});
+                  await client.channels.get(channelCheck).send({embed: embed});
+                  await client.channels.get(channelCheck).send({files: attachmentFiles});
                 }
+								if (urlList != "") {
+									await client.channels.get(channelCheck).send(urlList);
+								}
               }
             } else {
               // No content, just attachment
