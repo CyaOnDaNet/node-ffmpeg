@@ -170,9 +170,17 @@ module.exports = {
                         await client.channels.get(channelCheck).send({embed: embed});
                       }
                       else if (attachmentFiles.length === 1) {
-                        embed.setImage(attachmentFiles[0]);
-                        embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")");
-                        await client.channels.get(channelCheck).send({embed: embed});
+												if (attachmentFiles[0].toLowerCase().endsWith(".jpg") || attachmentFiles[0].toLowerCase().endsWith(".jpeg") || attachmentFiles[0].toLowerCase().endsWith(".gif") || attachmentFiles[0].toLowerCase().endsWith(".png")) {
+													embed.setImage(attachmentFiles[0]);
+													embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")");
+	                        await client.channels.get(channelCheck).send({embed: embed});
+												}
+												else {
+													const attachment = new Discord.Attachment("" + attachmentFiles[0] + "");
+													embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")");
+													await client.channels.get(channelCheck).send({embed: embed});
+                          await client.channels.get(channelCheck).send({files: [attachment]});
+												}
                       }
                       else {
                         if (!messageToCP.content) {
@@ -187,8 +195,13 @@ module.exports = {
                         else {
                           embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")\n" + message.author + "'s Attachments Listed Below");
                         }
-                        await client.channels.get(channelCheck).send({embed: embed});
-                        await client.channels.get(channelCheck).send({files: attachmentFiles});
+												var attachmentArray = [];
+												for (var i = 0; i <= attachmentFiles.length; i++) {
+													var tempAttachment = new Discord.Attachment(`${attachmentFiles[i]}`);
+													attachmentArray.push(tempAttachment);
+												}
+												await client.channels.get(channelCheck).send({embed: embed});
+                        await client.channels.get(channelCheck).send({files: attachmentArray});
                       }
 
 											if (urlList != "") {
@@ -238,9 +251,17 @@ module.exports = {
                         await client.channels.get(channelCheck).send({embed: embed});
                       }
                       else if (attachmentFiles.length === 1) {
-                        embed.setImage(attachmentFiles[0]);
-                        embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")\nCrossposted By: " + message.author);
-                        await client.channels.get(channelCheck).send({embed: embed});
+												if (attachmentFiles[0].toLowerCase().endsWith(".jpg") || attachmentFiles[0].toLowerCase().endsWith(".jpeg") || attachmentFiles[0].toLowerCase().endsWith(".gif") || attachmentFiles[0].toLowerCase().endsWith(".png")) {
+													embed.setImage(attachmentFiles[0]);
+	                        embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")\nCrossposted By: " + message.author);
+	                        await client.channels.get(channelCheck).send({embed: embed});
+												}
+												else {
+													const attachment = new Discord.Attachment(`${attachmentFiles[0]}`);
+													embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")\nCrossposted By: " + message.author);
+													await client.channels.get(channelCheck).send({embed: embed});
+                          await client.channels.get(channelCheck).send({files: [attachment]});
+												}
                       }
                       else {
                         if (!messageToCP.content) {
@@ -255,8 +276,13 @@ module.exports = {
                         else {
                           embed.addField('\u200b', "[Click Here for Message Origin](" + messageToCP.url + ")\nCrossposted By: " + message.author + "\nAttachments Listed Below");
                         }
-                        await client.channels.get(channelCheck).send({embed: embed});
-                        await client.channels.get(channelCheck).send({files: attachmentFiles});
+												var attachmentArray = [];
+												for (var i = 0; i <= attachmentFiles.length; i++) {
+													var tempAttachment = new Discord.Attachment(`${attachmentFiles[i]}`);
+													attachmentArray.push(tempAttachment);
+												}
+												await client.channels.get(channelCheck).send({embed: embed});
+                        await client.channels.get(channelCheck).send({files: attachmentArray});
                       }
 
 											if (urlList != "") {
@@ -340,14 +366,27 @@ module.exports = {
                   await client.channels.get(channelCheck).send({embed: embed});
                 }
                 else if (attachmentFiles.length === 1) {
-                  embed.setImage(attachmentFiles[0]);
-                  embed.addField('\u200b', "[Click Here for Message Origin](" + message.url + ")");
-                  await client.channels.get(channelCheck).send({embed: embed});
+									if (attachmentFiles[0].toLowerCase().endsWith(".jpg") || attachmentFiles[0].toLowerCase().endsWith(".jpeg") || attachmentFiles[0].toLowerCase().endsWith(".gif") || attachmentFiles[0].toLowerCase().endsWith(".png")) {
+										embed.setImage(attachmentFiles[0]);
+										embed.addField('\u200b', "[Click Here for Message Origin](" + message.url + ")");
+										await client.channels.get(channelCheck).send({embed: embed});
+									}
+									else {
+										const attachment = new Discord.Attachment(`${attachmentFiles[0]}`);
+										embed.addField('\u200b', "[Click Here for Message Origin](" + message.url + ")");
+										await client.channels.get(channelCheck).send({embed: embed});
+                    await client.channels.get(channelCheck).send({files: [attachment]});
+									}
                 }
                 else {
                   if (attachmentFiles.length > 1) embed.addField('\u200b', "[Click Here for Message Origin](" + message.url + ")\n" + message.author + "'s Attachments Listed Below");
-                  await client.channels.get(channelCheck).send({embed: embed});
-                  await client.channels.get(channelCheck).send({files: attachmentFiles});
+									var attachmentArray = [];
+									for (var i = 0; i <= attachmentFiles.length; i++) {
+										var tempAttachment = new Discord.Attachment(`${attachmentFiles[i]}`);
+										attachmentArray.push(tempAttachment);
+									}
+									await client.channels.get(channelCheck).send({embed: embed});
+                  await client.channels.get(channelCheck).send({files: attachmentArray});
                 }
 								if (urlList != "") {
 									await client.channels.get(channelCheck).send(urlList);
@@ -368,13 +407,25 @@ module.exports = {
                 attachmentFiles.push(attachments.url);
               });
               if (attachmentFiles.length === 1) {
-                embed.setImage(attachmentFiles[0]);
-                client.channels.get(channelCheck).send({embed: embed});
+								if (attachmentFiles[0].toLowerCase().endsWith(".jpg") || attachmentFiles[0].toLowerCase().endsWith(".jpeg") || attachmentFiles[0].toLowerCase().endsWith(".gif") || attachmentFiles[0].toLowerCase().endsWith(".png")) {
+									embed.setImage(attachmentFiles[0]);
+									await client.channels.get(channelCheck).send({embed: embed});
+								}
+								else {
+									const attachment = new Discord.Attachment(`${attachmentFiles[0]}`);
+									await client.channels.get(channelCheck).send({embed: embed});
+                  await client.channels.get(channelCheck).send({files: [attachment]});
+								}
               }
               else {
-                embed.setDescription(message.author + " Posted the Attachments Below");
-                client.channels.get(channelCheck).send({embed: embed});
-                client.channels.get(channelCheck).send({files: attachmentFiles});
+								var attachmentArray = [];
+								for (var i = 0; i <= attachmentFiles.length; i++) {
+									var tempAttachment = new Discord.Attachment(`${attachmentFiles[i]}`);
+									attachmentArray.push(tempAttachment);
+								}
+								embed.setDescription(message.author + " Posted the Attachments Below");
+								await client.channels.get(channelCheck).send({embed: embed});
+                await client.channels.get(channelCheck).send({files: attachmentArray});
               }
             }
           } else {
