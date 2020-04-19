@@ -6,6 +6,7 @@ module.exports = {
 	async execute(message, args, prefix, guildSettings, client, Discord, Music, fetch) {
     // Limited to guild owner - adjust to your own preference!
     if(message.author.id != message.guild.ownerID) return message.reply("Only the server owner can give points!");
+		let score;
 
     const user = message.mentions.users.first() || client.users.get(args[0]);
     if(!user) return message.reply("You must mention someone or give their ID!");
@@ -22,8 +23,11 @@ module.exports = {
     userscore.points += pointsToAdd;
 
     // We also want to update their level (but we won't notify them if it changes)
-    let userLevel = Math.floor(0.1 * Math.sqrt(score.points));
+    let userLevel = Math.floor(0.1 * Math.sqrt(userscore.points));
     userscore.level = userLevel;
+		if(userscore.level < userLevel) {
+      userscore.level++;
+    }
 
     // And we save it!
     client.setScore.run(userscore);

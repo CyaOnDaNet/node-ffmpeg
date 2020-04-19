@@ -3,7 +3,7 @@ const client = new Discord.Client();
 const config = require("./config/config.json");
 const SQLite = require("better-sqlite3");
 const sql = new SQLite('./config/database.sqlite');
-const Music = require('discord.js-musicbot-addon');
+const Music = require('./discord.js-musicbot-addon');
 const fetch = require('node-fetch');
 const schedule = require('node-schedule');
 const process = require('process');
@@ -210,32 +210,38 @@ client.on('messageDelete', async (message) => {
   }
   var prefix = guildSettings.prefix;
 
+  if (guildSettings.logChannel === "off") return; //Logging is disabled, break out.
 
   // Firstly, we need a logs channel.
   var logs;
   if (guildSettings.logChannel === defaultGuildSettings.logChannel) {
-    logs = message.guild.channels.find(channel => channel.name === guildSettings.logChannel);
+    logs = message.guild.channels.cache.find(channel => channel.name === guildSettings.logChannel);
   } else {
-    logs = message.guild.channels.find(channel => channel.id === guildSettings.logChannel);
+    logs = message.guild.channels.cache.find(channel => channel.id === guildSettings.logChannel);
   }
 
   // If there is no logs channel, we can create it if we have the 'MANAGE_CHANNELS' permission
   // Remember, this is completely options. Use to your best judgement.
   if (message.guild.me.hasPermission('MANAGE_CHANNELS') && !logs) {
-    await message.guild.createChannel(guildSettings.logChannel, { type: 'text' });
+    await message.guild.channels.create(guildSettings.logChannel, { type: 'text' });
     guildSettings = client.getGuildSettings.get(message.guild.id);
-    logs = message.guild.channels.find(channel => channel.name === guildSettings.logChannel);
+    logs = message.guild.channels.resolve(channel => channel.name === guildSettings.logChannel);
   }
 
-  const entry = await message.guild.fetchAuditLogs({type: 'MESSAGE_DELETE'}).then(audit => audit.entries.first())
-  let user = ""
+	const fetchedLogs = await message.guild.fetchAuditLogs({
+      limit: 1,
+      type: 'MESSAGE_DELETE',
+  });
+  const entry = fetchedLogs.entries.first();
+
+  let user = "";
     if (entry.extra.channel.id === message.channel.id
       && (entry.target.id === message.author.id)
       && (entry.createdTimestamp > (Date.now() - 5000))
       && (entry.extra.count >= 1)) {
-    user = entry.executor
+    user = entry.executor;
   } else {
-    user = message.author
+    user = message.author;
   }
 
   if (message.author.id != client.user.id) {
@@ -259,7 +265,7 @@ client.on('messageDelete', async (message) => {
         timestamp: new Date(),
         "footer": {
           "icon_url": user.avatarURL,
-          "text": "Deleted By: " + user.username,
+          "text": "Deleted By: " + entry.executor.tag,
         },
         "author": {
           "name": message.author.tag,

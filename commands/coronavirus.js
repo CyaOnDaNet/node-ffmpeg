@@ -58,55 +58,59 @@ module.exports = {
 
 
 	    for (var i = 0; i <= summary.Countries.length; i++) {
-				if (summary.Countries[i].Slug == "united-states") {
-					const summaryEmbedUS = {
-							title: "Provided By Johns Hopkins University",
-							description: "via the [covid19api](https://covid19api.com/)",
-							url: "https://www.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6",
-							color: 5159289,
-							timestamp: new Date(`${summary.Countries[i].Date}`),
-							fields: [
-									{
-										name: 'New Confirmed',
-										value: `${summary.Countries[i].NewConfirmed}`,
-										inline: true
+				if (summary.Countries) {
+					if (summary.Countries[i] && summary.Countries[i] != undefined) {
+						if (summary.Countries[i].Slug == "united-states") {
+							const summaryEmbedUS = {
+									title: "Provided By Johns Hopkins University",
+									description: "via the [covid19api](https://covid19api.com/)",
+									url: "https://www.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6",
+									color: 5159289,
+									timestamp: new Date(`${summary.Countries[i].Date}`),
+									fields: [
+											{
+												name: 'New Confirmed',
+												value: `${summary.Countries[i].NewConfirmed}`,
+												inline: true
+											},
+											{
+												name: 'Total Confirmed',
+												value: `${summary.Countries[i].TotalConfirmed}`,
+												inline: true
+											},
+											{
+												name: 'New Deaths',
+												value: `${summary.Countries[i].NewDeaths}`,
+												inline: true
+											},
+											{
+												name: 'Total Deaths',
+												value: `${summary.Countries[i].TotalDeaths}`,
+												inline: true
+											},
+											{
+												name: 'New Recovered',
+												value: `${summary.Countries[i].NewRecovered}`,
+												inline: true
+											},
+											{
+												name: 'Total Recovered',
+												value: `${summary.Countries[i].TotalRecovered}`,
+												inline: true
+											}
+										],
+									footer: {
+										"text": "Updated",
+										"icon_url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Corona_Extra_beer_bottle_%282019%29.png"
 									},
-									{
-										name: 'Total Confirmed',
-										value: `${summary.Countries[i].TotalConfirmed}`,
-										inline: true
-									},
-									{
-										name: 'New Deaths',
-										value: `${summary.Countries[i].NewDeaths}`,
-										inline: true
-									},
-									{
-										name: 'Total Deaths',
-										value: `${summary.Countries[i].TotalDeaths}`,
-										inline: true
-									},
-									{
-										name: 'New Recovered',
-										value: `${summary.Countries[i].NewRecovered}`,
-										inline: true
-									},
-									{
-										name: 'Total Recovered',
-										value: `${summary.Countries[i].TotalRecovered}`,
-										inline: true
+									author: {
+										"name": "U.S. Coronavirus Stats",
+										"icon_url": "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/160/apple/48/flag-for-united-states_1f1fa-1f1f8.png"
 									}
-								],
-							footer: {
-								"text": "Updated",
-								"icon_url": "https://upload.wikimedia.org/wikipedia/commons/0/04/Corona_Extra_beer_bottle_%282019%29.png"
-							},
-							author: {
-								"name": "U.S. Coronavirus Stats",
-								"icon_url": "https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/160/apple/48/flag-for-united-states_1f1fa-1f1f8.png"
-							}
-					};
-					message.channel.send({ embed: summaryEmbedUS });
+							};
+							message.channel.send({ embed: summaryEmbedUS });
+						}
+					}
 				}
 			}
 		}

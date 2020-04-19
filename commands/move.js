@@ -30,7 +30,7 @@ module.exports = {
             channelCheck += messageAfterCommand[y];
           }
         }
-        if (client.channels.get(channelCheck.slice(2, channelCheck.length - 1)) === undefined) {
+        if (client.channels.resolve(channelCheck.slice(2, channelCheck.length - 1)) === undefined) {
           // Stop here and preserve the message because it wasn't a valid channel mention, therefore we must assume its just text using the character '<'
         } else {
           // This was a valid channel mention so lets continue processing
@@ -68,12 +68,13 @@ module.exports = {
             channelCheck += messageAfterCommand[y];
           }
         }
-        if (client.channels.get(channelCheck.slice(2, channelCheck.length - 1)) === undefined) {
+        if (client.channels.resolve(channelCheck.slice(2, channelCheck.length - 1)) === undefined) {
           // Stop here and preserve the message because it wasn't a valid channel mention, therefore we must assume its just text using the character '<'
         } else {
           // This was a valid channel mention so lets send the extractedMessage
           channelCheck = channelCheck.slice(2, channelCheck.length - 1);
-          if (client.channels.get(channelCheck).guild.member(message.author).permissionsIn(channelCheck).has('SEND_MESSAGES')) {
+					//var tempChannel = await client.channels.resolve(channelCheck);
+          if (client.channels.resolve(channelCheck).guild.member(message.author).permissionsIn(channelCheck).has('SEND_MESSAGES')) {
             var embed;
             if (extractedMessage != "") {
               // Has Content
@@ -93,20 +94,20 @@ module.exports = {
                 }
 
                 var send = true;
-                await message.channel.fetchMessage(messageID)
+                await message.channel.messages.fetch(messageID)
                   .then(async messageToCP => {
                     if (messageToCP.author.id === message.author.id) {
-                      embed = new Discord.RichEmbed()
-                        .setThumbnail(messageToCP.author.avatarURL)
-                        .setDescription(messageToCP.author + " Said:\n\n>>> " + messageToCP.content)
+                      embed = new Discord.MessageEmbed()
+                        .setThumbnail(messageToCP.author.displayAvatarURL({ format: `png`, dynamic: true }))
+                        .setDescription(`<@${messageToCP.author.id}> Said:\n\n>>> ${messageToCP.content}`)
                         .setFooter("Originally created")
                         .setTimestamp(messageToCP.createdAt)
                         .setColor(0x00AE86);
 
                       if (!messageToCP.content) {
-                        embed = new Discord.RichEmbed()
-                          .setThumbnail(messageToCP.author.avatarURL)
-                          .setDescription(messageToCP.author + "  Posted an Attachment.")
+                        embed = new Discord.MessageEmbed()
+                          .setThumbnail(messageToCP.author.displayAvatarURL({ format: `png`, dynamic: true }))
+                          .setDescription(`<@${messageToCP.author.id}> Posted an Attachment.`)
                           .setFooter("Originally created")
                           .setTimestamp(messageToCP.createdAt)
                           .setColor(0x00AE86);
@@ -121,45 +122,45 @@ module.exports = {
                         attachmentFiles.push(attachments.url);
                       });
                       if (attachmentFiles.length === 0) {
-                        if (!reason) embed.addField('\u200b', "Moved from: " + message.channel);
-                        else embed.addField('\u200b', "Moved from: " + message.channel + " For Reason: `" + reason + "`");
-                        sentMessageEmbeds[count] = await client.channels.get(channelCheck).send({embed: embed});
+                        if (!reason) embed.addField('\u200b', `Moved from: <#${message.channel.id}>`);
+                        else embed.addField('\u200b', `Moved from: <#${message.channel.id}> For Reason: \`${reason}\``);
+                        sentMessageEmbeds[count] = await client.channels.resolve(channelCheck).send({embed: embed});
                         count++;
                       }
                       else if (attachmentFiles.length === 1) {
-                        if (!reason) embed.addField('\u200b', "Moved from: " + message.channel);
-                        else embed.addField('\u200b', "Moved from: " + message.channel + " For Reason: `" + reason + "`");
+                        if (!reason) embed.addField('\u200b', `Moved from: <#${message.channel.id}>`);
+                        else embed.addField('\u200b', `Moved from: <#${message.channel.id}> For Reason: \`${reason}\``);
                         embed.setImage(attachmentFiles[0]);
-                        sentMessageEmbeds[count] = await client.channels.get(channelCheck).send({embed: embed});
+                        sentMessageEmbeds[count] = await client.channels.resolve(channelCheck).send({embed: embed});
                         count++;
                       }
                       else {
                         if (!messageToCP.content) {
-                          if (!reason) embed.addField('\u200b', "Moved from: " + message.channel);
-                          else embed.addField('\u200b', "Moved from: " + message.channel + " For Reason: `" + reason + "`");
-                          embed.setDescription(messageToCP.author + " Posted the Attachments Below");
+                          if (!reason) embed.addField('\u200b', `Moved from: <#${message.channel.id}>`);
+                          else embed.addField('\u200b', `Moved from: <#${message.channel.id}> For Reason: \`${reason}\``);
+                          embed.setDescription(`<@${messageToCP.author.id}> Posted the Attachments Below`);
                         }
                         else {
-                          if (!reason) embed.addField('\u200b', "Moved from: " + message.channel + "\n" + messageToCP.author + "'s Attachments Listed Below");
-                          else embed.addField('\u200b', "Moved from: " + message.channel + " For Reason: `" + reason + "`\n" + messageToCP.author + "'s Attachments Listed Below");
+                          if (!reason) embed.addField('\u200b', `Moved from: <#${message.channel.id}>\n<@${messageToCP.author.id}>'s Attachments Listed Below`);
+                          else embed.addField('\u200b', `Moved from: <#${message.channel.id}> For Reason: \`${reason}\`\n<@${messageToCP.author.id}>'s Attachments Listed Below`);
                         }
-                        sentMessageEmbeds[count] = await client.channels.get(channelCheck).send({embed: embed});
+                        sentMessageEmbeds[count] = await client.channels.resolve(channelCheck).send({embed: embed});
                         count++;
-                        client.channels.get(channelCheck).send({files: attachmentFiles});
+                        client.channels.resolve(channelCheck).send({files: attachmentFiles});
                       }
 
                     } else {
-                      embed = new Discord.RichEmbed()
-                        .setThumbnail(messageToCP.author.avatarURL)
-                        .setDescription(messageToCP.author + " Said:\n\n>>> " + messageToCP.content)
+                      embed = new Discord.MessageEmbed()
+                        .setThumbnail(messageToCP.author.displayAvatarURL({ format: `png`, dynamic: true }))
+                        .setDescription(`<@${messageToCP.author.id}> Said:\n\n>>> ${messageToCP.content}`)
                         .setFooter("Originally created")
                         .setTimestamp(messageToCP.createdAt)
                         .setColor(0x00AE86);
 
                         if (!messageToCP.content) {
-                          embed = new Discord.RichEmbed()
-                            .setThumbnail(messageToCP.author.avatarURL)
-                            .setDescription(messageToCP.author + " Posted an Attachment.")
+                          embed = new Discord.MessageEmbed()
+                            .setThumbnail(messageToCP.author.displayAvatarURL({ format: `png`, dynamic: true }))
+                            .setDescription(`<@${messageToCP.author.id}> Posted an Attachment.`)
                             .setFooter("Originally created")
                             .setTimestamp(messageToCP.createdAt)
                             .setColor(0x00AE86);
@@ -175,48 +176,48 @@ module.exports = {
                         attachmentFiles.push(attachments.url);
                       });
                       if (attachmentFiles.length === 0) {
-                        if (!reason) embed.addField('\u200b', "Moved By: " + message.author + " From: " + message.channel);
-                        else embed.addField('\u200b', "Moved By: " + message.author + " From: " + message.channel + "\nFor Reason: `" + reason + "`");
-                        sentMessageEmbeds[count] = await client.channels.get(channelCheck).send({embed: embed});
+                        if (!reason) embed.addField('\u200b', `Moved By: <@${message.author.id}> From: <#${message.channel.id}>`);
+                        else embed.addField('\u200b', `Moved By: <@${message.author.id}> From: <#${message.channel.id}>\nFor Reason: \`${reason}\``);
+                        sentMessageEmbeds[count] = await client.channels.resolve(channelCheck).send({embed: embed});
                         count++;
                       }
                       else if (attachmentFiles.length === 1) {
-                        if (!reason) embed.addField('\u200b', "Moved By: " + message.author + " From: " + message.channel);
-                        else embed.addField('\u200b', "Moved By: " + message.author + " From: " + message.channel + "\nFor Reason: `" + reason + "`");
+                        if (!reason) embed.addField('\u200b', `Moved By: <@${message.author.id}> From: <#${message.channel.id}>`);
+                        else embed.addField('\u200b', `Moved By: <@${message.author.id}> From: <#${message.channel.id}>\nFor Reason: \`${reason}\``);
                         embed.setImage(attachmentFiles[0]);
-                        sentMessageEmbeds[count] = await client.channels.get(channelCheck).send({embed: embed});
+                        sentMessageEmbeds[count] = await client.channels.resolve(channelCheck).send({embed: embed});
                         count++;
                       }
                       else {
                         if (!messageToCP.content) {
-                          if (!reason) embed.addField('\u200b', "Moved By: " + message.author + " From: " + message.channel);
-                          else embed.addField('\u200b', "Moved By: " + message.author + " From: " + message.channel + "\nFor Reason: `" + reason + "`");
-                          embed.setDescription(messageToCP.author + " Posted the Attachments Below");
+                          if (!reason) embed.addField('\u200b', `Moved By: <@${message.author.id}> From: <#${message.channel.id}>`);
+                          else embed.addField('\u200b', `Moved By: <@${message.author.id}> From: <#${message.channel.id}>\nFor Reason: \`${reason}\``);
+                          embed.setDescription(`<@${messageToCP.author.id}> Posted the Attachments Below`);
                         }
                         else {
-                          if (!reason) embed.addField('\u200b', "Moved By: " + message.author + " From: " + message.channel);
-                          else embed.addField('\u200b', "Moved By: " + message.author + " From: " + message.channel + "\nFor Reason: `" + reason + "`\n" + messageToCP.author + "'s Attachments Listed Below");
+                          if (!reason) embed.addField('\u200b', `Moved By: <@${message.author.id}> From: <#${message.channel.id}>`);
+                          else embed.addField('\u200b', `Moved By: <@${message.author.id}> From: <#${message.channel.id}>\nFor Reason: \`${reason}\`\n<@${messageToCP.author.id}>'s Attachments Listed Below`);
                         }
-                        sentMessageEmbeds[count] = await client.channels.get(channelCheck).send({embed: embed});
+                        sentMessageEmbeds[count] = await client.channels.resolve(channelCheck).send({embed: embed});
                         count++;
-                        client.channels.get(channelCheck).send({files: attachmentFiles});
+                        client.channels.resolve(channelCheck).send({files: attachmentFiles});
                       }
 
 
                     }
                   })
                   .catch(error => {
-                    //console.log(error);
+                    console.log(error);
                     send = false;
                     i = messageAfterCommand.length + 1;   // ensure we don't come back here if multiple channels were mentioned
                     return message.channel.send("That was not a valid message ID in this channel! Nothing moved.");
                   });
                   if (send) {
-                    //sentMessageEmbeds[count] = await client.channels.get(channelCheck).send({embed: embed});
+                    //sentMessageEmbeds[count] = await client.channels.resolve(channelCheck).send({embed: embed});
                     //count++;
 
                     deleteMovedMessage = true;
-                    await message.channel.fetchMessage(messageID)
+                    await message.channel.messages.fetch(messageID)
                       .then(messageToCP => {
                         //messageToCP.delete(5000).catch(console.error);
                       })
@@ -264,12 +265,12 @@ module.exports = {
             //console.log(sentMessageEmbeds);
 
             for (var i = 0; i < count; i++) {
-              await client.channels.get(sentMessageEmbeds[i].channel.id).fetchMessage(sentMessageEmbeds[i].id)
+              await client.channels.resolve(sentMessageEmbeds[i].channel.id).messages.fetch(sentMessageEmbeds[i].id)
                 .then(getMessageURL => {
                   if (i === 0){
-                    sentList = sentList + "[Destination " + (i + 1) + "](" + getMessageURL.url + ") • " + sentMessageEmbeds[i].channel;
+                    sentList = sentList + "[Destination " + (i + 1) + "](" + getMessageURL.url + ") • <#" + sentMessageEmbeds[i].channel.id + ">";
                   } else {
-                    sentList = sentList + "\n[Destination " + (i + 1) + "](" + getMessageURL.url + ") • " + sentMessageEmbeds[i].channel;
+                    sentList = sentList + "\n[Destination " + (i + 1) + "](" + getMessageURL.url + ") • <#" + sentMessageEmbeds[i].channel.id + ">";
                   }
                 })
                 .catch(error => {
@@ -278,11 +279,11 @@ module.exports = {
             }
             var embed;
 
-            await message.channel.fetchMessage(messageID)
+            await message.channel.messages.fetch(messageID)
               .then(messageToCP => {
                 if (count > 1) {
-                  embed = new Discord.RichEmbed()
-                    .setThumbnail(messageToCP.author.avatarURL, client.user.avatarURL)
+                  embed = new Discord.MessageEmbed()
+                    .setThumbnail(messageToCP.author.displayAvatarURL({ format: `png`, dynamic: true }), client.user.displayAvatarURL({ format: `png`, dynamic: true }))
                     .setAuthor("A post was moved to the following channels:", 'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/emojione/211/black-rightwards-arrow_27a1.png')
                     .setDescription(sentList)
                     .setFooter("Moved")
@@ -290,8 +291,8 @@ module.exports = {
                     .setColor(0x00AE86);
                 }
                 else {
-                  embed = new Discord.RichEmbed()
-                    .setThumbnail(messageToCP.author.avatarURL, client.user.avatarURL)
+                  embed = new Discord.MessageEmbed()
+                    .setThumbnail(messageToCP.author.displayAvatarURL({ format: `png`, dynamic: true }), client.user.displayAvatarURL({ format: `png`, dynamic: true }))
                     .setAuthor("A post was moved to the following channel:", 'https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/emojione/211/black-rightwards-arrow_27a1.png')
                     .setDescription(sentList)
                     .setFooter("Moved")
@@ -304,7 +305,7 @@ module.exports = {
                 console.log(error);
               });
 
-            await message.channel.fetchMessage(messageID)
+            await message.channel.messages.fetch(messageID)
               .then(messageToCP => {
                 messageToCP.delete().catch(console.error);
               })

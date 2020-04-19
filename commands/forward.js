@@ -26,7 +26,7 @@ module.exports = {
             channelCheck += messageAfterCommand[y];
           }
         }
-        if (client.channels.get(channelCheck.slice(2, channelCheck.length - 1)) === undefined) {
+        if (client.channels.resolve(channelCheck.slice(2, channelCheck.length - 1)) === undefined) {
           // Stop here and preserve the message because it wasn't a valid channel mention, therefore we must assume its just text using the character '<'
         } else {
           // This was a valid channel mention so lets continue processing
@@ -64,22 +64,38 @@ module.exports = {
             channelCheck += messageAfterCommand[y];
           }
         }
-        if (client.channels.get(channelCheck.slice(2, channelCheck.length - 1)) === undefined) {
+        if (client.channels.resolve(channelCheck.slice(2, channelCheck.length - 1)) === undefined) {
           // Stop here and preserve the message because it wasn't a valid channel mention, therefore we must assume its just text using the character '<'
         } else {
           // This was a valid channel mention so lets send the extractedMessage
           channelCheck = channelCheck.slice(2, channelCheck.length - 1);
-          if (client.channels.get(channelCheck).guild.member(message.author).hasPermission('ADMINISTRATOR')) {
+          if (client.channels.resolve(channelCheck).guild.member(message.author).hasPermission('ADMINISTRATOR')) {
+						var attachmentFiles = [];
+						var Attachment = (message.attachments).array();
+						Attachment.forEach(function(attachment) {
+							attachmentFiles.push(attachment.url);
+						});
+
             if (messageAfterCommand != "") {
-              if(extractedMessage != "") client.channels.get(channelCheck).send(extractedMessage).then((newMessage) => {
-                message.channel.send("Message forwarded to " + newMessage.channel + " successfully, to edit this message type the following command:\n`" + prefix + "edit " + newMessage.channel + " " + newMessage.id + " <edited message>`")
-              });
+							if (attachmentFiles.length > 0) {
+								if(extractedMessage != "") client.channels.resolve(channelCheck).send({content: extractedMessage, files: attachmentFiles}).then((newMessage) => {
+	                message.channel.send("Message forwarded to <#" + newMessage.channel.id + "> successfully, to edit this message type the following command:\n`" + prefix + "edit <#" + newMessage.channel + "> " + newMessage.id + " <edited message>`")
+	              });
+							}
+							else {
+								if(extractedMessage != "") client.channels.resolve(channelCheck).send(extractedMessage).then((newMessage) => {
+	                message.channel.send("Message forwarded to <#" + newMessage.channel.id + "> successfully, to edit this message type the following command:\n`" + prefix + "edit <#" + newMessage.channel + "> " + newMessage.id + " <edited message>`")
+	              });
+							}
             }
-            message.attachments.tap(attachments => {
-              client.channels.get(channelCheck).send({
-                files: [attachments.url]
-              });
-            });
+						else {
+							if (attachmentFiles.length > 0) {
+								await client.channels.resolve(channelCheck).send({files: attachmentFiles}).then((newMessage) => {
+	                message.channel.send("Attachment(s) forwarded to <#" + newMessage.channel.id + "> successfully, to edit this message type the following command:\n`" + prefix + "edit <#" + newMessage.channel + "> " + newMessage.id + " <edited message>`")
+	              });
+							}
+						}
+
           } else {
             message.channel.send('You do not have permissions to use `' + prefix + command + '` in <#' + channelCheck + '>!');
           }

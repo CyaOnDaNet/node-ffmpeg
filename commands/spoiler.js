@@ -25,71 +25,73 @@ module.exports = {
 
       var embed;
       var send = true;
-      await message.channel.fetchMessage(messageID)
-        .then(messageToSpoil => {
-          embed = new Discord.RichEmbed()
-            .setThumbnail(messageToSpoil.author.avatarURL)
-            .setDescription(messageToSpoil.author + " spoiled something:\n\n>>> ||" + messageToSpoil.content + "||")
+      await message.channel.messages.fetch(messageID)
+        .then(async messageToSpoil => {
+          embed = new Discord.MessageEmbed()
+            .setThumbnail(messageToSpoil.author.displayAvatarURL({ format: `png`, dynamic: true }))
+            .setDescription(`<@${messageToSpoil.author.id}> spoiled something:\n\n>>> ||${messageToSpoil.content}||`)
             .setFooter("Originally created")
             .setTimestamp(messageToSpoil.createdAt)
             .setColor(0x00AE86);
 
             if (!messageToSpoil.content) {
-              embed = new Discord.RichEmbed()
-                .setThumbnail(messageToSpoil.author.avatarURL)
+              embed = new Discord.MessageEmbed()
+                .setThumbnail(messageToSpoil.author.displayAvatarURL({ format: `png`, dynamic: true }))
                 .setFooter("Originally created")
                 .setTimestamp(messageToSpoil.createdAt)
                 .setColor(0x00AE86);
             }
 
-            var attachmentFiles = [];
-            messageToSpoil.attachments.tap(attachments => {
-              var spoilerFilename = 'SPOILER_' + attachments.filename;
-              attachmentFiles.push({
-                attachment: attachments.url,
+						var attachmentFiles = [];
+						var Attachment = (messageToSpoil.attachments).array();
+						Attachment.forEach(function(attachment) {
+							var spoilerFilename = 'SPOILER_' + attachment.name;
+							attachmentFiles.push({
+                attachment: attachment.url,
                 name: spoilerFilename
               });
-            });
+						});
+
             if (attachmentFiles.length === 0) {
               if (messageToSpoil.content) {
-                if (!reason) embed.addField('\u200b', "Marked as spoiler by: " + message.author);
-                else embed.addField('\u200b', "Marked as spoiler by: " + message.author + "\nFor Reason: `" + reason + "`");
+                if (!reason) embed.addField('\u200b', `Marked as spoiler by: <@${message.author.id}>`);
+                else embed.addField('\u200b', `Marked as spoiler by: <@${message.author.id}>\nFor Reason: \`${reason}\``);
               }
               message.channel.send({embed: embed});
             }
             else if (attachmentFiles.length === 1) {
               if (messageToSpoil.content) {
-                if (!reason) embed.addField('\u200b', "Marked as spoiler by: " + message.author + "\nSpoiled Attachment Below:");
-                else embed.addField('\u200b', "Marked as spoiler by: " + message.author + "\nFor Reason: `" + reason + "`\nSpoiled Attachment Below:");
+                if (!reason) embed.addField('\u200b', `Marked as spoiler by: <@${message.author.id}>\nSpoiled Attachment Below:`);
+                else embed.addField('\u200b', `Marked as spoiler by: <@${message.author.id}>\nFor Reason: \`${reason}\`\nSpoiled Attachment Below:`);
               }
               if (!messageToSpoil.content) {
-                if (!reason) embed.setDescription(messageToSpoil.author + " posted a spoiled attachment.\n\nMarked as spoiler by: " + message.author);
-                else embed.setDescription(messageToSpoil.author + " posted a spoiled attachment.\n\nMarked as spoiler by: " + message.author + "\nFor Reason: `" + reason + "`");
+                if (!reason) embed.setDescription(`<@${messageToSpoil.author.id}> posted a spoiled attachment.\n\nMarked as spoiler by: <@${message.author.id}>`);
+                else embed.setDescription(`<@${messageToSpoil.author.id}> posted a spoiled attachment.\n\nMarked as spoiler by: <@${message.author.id}>\nFor Reason: \`${reason}\``);
               }
-              message.channel.send({embed: embed});
-              message.channel.send({files: attachmentFiles});
+              await message.channel.send({embed: embed});
+							await message.channel.send({files: attachmentFiles});
             }
             else {
               if (!messageToSpoil.content) {
-                if (!reason) embed.setDescription(messageToSpoil.author + " posted the spoiled attachments below.\n\nMarked as spoiler by: " + message.author);
-                else embed.setDescription(messageToSpoil.author + " posted the spoiled attachments below.\n\nMarked as spoiler by: " + message.author + "\nFor Reason: `" + reason + "`");
+                if (!reason) embed.setDescription(`<@${messageToSpoil.author.id}> posted the spoiled attachments below.\n\nMarked as spoiler by: <@${message.author.id}>`);
+                else embed.setDescription(`<@${messageToSpoil.author.id}> posted the spoiled attachments below.\n\nMarked as spoiler by: <@${message.author.id}>\nFor Reason: \`${reason}\``);
               }
               else {
-                if (!reason) embed.addField('\u200b', "Marked as spoiler by: " + message.author + "\nSpoiled Attachments Listed Below:");
-                else embed.addField('\u200b', "Marked as spoiler by: " + message.author + "\nFor Reason: `" + reason + "`\nSpoiled Attachments Listed Below:");
+                if (!reason) embed.addField('\u200b', `Marked as spoiler by: <@${message.author.id}>\nSpoiled Attachments Listed Below:`);
+                else embed.addField('\u200b', `Marked as spoiler by: <@${message.author.id}>\nFor Reason: \`${reason}\`\nSpoiled Attachments Listed Below:`);
               }
-              message.channel.send({embed: embed});
-              message.channel.send({files: attachmentFiles});
+							await message.channel.send({embed: embed});
+							await message.channel.send({files: attachmentFiles});
             }
         })
         .catch(error => {
-          //console.log(error);
+          console.log(error);
           send = false;
-          return message.channel.send("That was not a valid message ID in this channel! Nothing moved.");
+          return message.channel.send("That was not a valid message ID in this channel! Nothing marked as spoiler.");
         });
         if (send) {
           deleteMovedMessage = true;
-          await message.channel.fetchMessage(messageID)
+          await message.channel.messages.fetch(messageID)
             .then(messageToSpoil => {
               messageToSpoil.delete().catch(console.error);
             })

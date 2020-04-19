@@ -13,7 +13,7 @@ module.exports = {
     var messageID = editedMessage.slice(0, editedMessage.indexOf(" "));
     editedMessage = editedMessage.slice(editedMessage.indexOf(" ")).trim();
 
-    message.mentions.channels.first().fetchMessage(messageID)
+    message.mentions.channels.first().messages.fetch(messageID)
       .then(messageToEdit => {
         if (messageToEdit.author.id === client.user.id) {
           messageToEdit.edit(editedMessage);
@@ -22,6 +22,7 @@ module.exports = {
         }
       })
       .catch(error => {
+				console.log(error);
         message.channel.send("It appears you did not list a valid message ID to edit...");
       });
   },
